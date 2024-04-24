@@ -1,4 +1,3 @@
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -284,22 +283,31 @@ public class MyArrayList<T> implements MyList<T> {
     }
 
     @Override
-    public Iterator iterator() {
-        return new Iterator<T>() {
-            private int currentIndex = 0;
+    public Iterator<T> iterator() {
+        return new MyIterator();
+    }
+    private class MyIterator implements Iterator<T>{
+        private int cursor = 0;
 
-            @Override
-            public boolean hasNext() {
-                return currentIndex < size;
-            }
+        /**
+         * Method to check is next element exist or not.
+         * @return True if exists or False if not.
+         */
+        @Override
+        public boolean hasNext() {
+            return cursor != size;
+        }
 
-            @Override
-            public T next() {
-                if (!hasNext())
-                    throw new NoSuchElementException();
+        /**
+         * Method to
+         * @return
+         */
+        @Override
+        public T next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
 
-                return (T) array[currentIndex++];
-            }
-        };
+            return (T) array[cursor++];
+        }
     }
 }
