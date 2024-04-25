@@ -56,13 +56,13 @@ public class MyLinkedList<E> implements MyList<E> {
      */
     private MyNode<E> getNote(int index) {
         if (index < (size >> 1)) {
-            MyLinkedList.MyNode<E> x = head;
+            MyNode<E> x = head;
             for (int i = 0; i < index; i++)
                 x = x.next;
 
             return x;
         } else {
-            MyLinkedList.MyNode<E> x = tail;
+            MyNode<E> x = tail;
             for (int i = size - 1; i > index; i--)
                 x = x.prev;
 
@@ -74,6 +74,7 @@ public class MyLinkedList<E> implements MyList<E> {
      * Node getter.
      * @param index index of node.
      * @return node.
+     * @throws IndexOutOfBoundsException if index is out of bounds.
      */
     private MyNode<E> getNode(int index) {
         checkElementIndex(index);
@@ -107,6 +108,7 @@ public class MyLinkedList<E> implements MyList<E> {
      * Method to change some node to node with new element.
      * @param index index of node.
      * @param item new element.
+     * @throws IndexOutOfBoundsException if index is out of bounds.
      */
     @Override
     public void set(int index, E item) {
@@ -117,7 +119,8 @@ public class MyLinkedList<E> implements MyList<E> {
     /**
      * Method to add element to specific index;
      * @param index preferable index.
-     * @param item element
+     * @param item an element.
+     * @throws IndexOutOfBoundsException if index is out of bound.
      */
     @Override
     public void add(int index, E item) {
@@ -193,6 +196,7 @@ public class MyLinkedList<E> implements MyList<E> {
     /**
      * Method to get first element from linked list.
      * @return data (element) from node.
+     * @throws IndexOutOfBoundsException if index is out of bound.
      */
     @Override
     public E getFirst() {
@@ -203,28 +207,34 @@ public class MyLinkedList<E> implements MyList<E> {
     /**
      * Method to get last element from linked list.
      * @return data (element) from node.
+     * @throws NoSuchElementException if tail of the linked list is null.
      */
     @Override
     public E getLast() {
-        checkElementIndex(size);
-        return get(size);
+        final MyNode<E> last = tail;
+        if (last == null)
+            throw new NoSuchElementException();
+        return last.data;
     }
 
     /**
      * Method to remove node with specific index.
      * @param index specific index of node.
+     * @throws IndexOutOfBoundsException if index is out of bound.
      */
     @Override
     public void remove(int index) {
         checkElementIndex(index);
-        unlink(getNode(index));
+        if (getNode(index) != null)
+            unlink(getNode(index));
     }
 
     /**
      * Method to unlink node from next and previous.
      * @param node node.
      */
-    private void unlink(MyNode node) {
+    private void unlink(MyNode<E> node) {
+        final E element = node.data;
         final MyNode<E> next = node.next;
         final MyNode<E> prev = node.prev;
 
@@ -248,44 +258,88 @@ public class MyLinkedList<E> implements MyList<E> {
 
     /**
      * Method to remove first element in linked list. Method does not return deleted element.
-     * @throws IndexOutOfBoundsException if linked list is empty.
+     * @throws IndexOutOfBoundsException if head of linked list is null.
      */
     @Override
     public void removeFirst() {
-        if (head == null)
-            throw new IndexOutOfBoundsException("Linked list is empty.");
+        final MyNode<E> first = head;
+        if (first == null)
+            throw new NoSuchElementException();
 
-        if (head == tail)
-            head = tail = null;
+        unlinkFirst(first);
+    }
+
+    private void unlinkFirst(MyNode<E> first) {
+        final E element = first.data;
+        final MyNode<E> next = first.next;
+        first.data = null;
+        first.next = null;
+        first = next;
+        if (next == null)
+            tail = null;
         else
-            head = head.next;
-
+            next.prev = null;
         size--;
     }
 
     /**
      * Method to remove last element in linked list.
+     * @throws NoSuchElementException if tail of the linked list is null.
      */
     @Override
     public void removeLast() {
-        if (head == tail)
-            head = tail = null;
-        else {
-            MyNode<E> current = head;
-            while (current.next != tail)
-                current = current.next;
+        final MyNode<E> last = tail;
+        if (last == null)
+            throw new NoSuchElementException();
 
-            tail = current;
-            tail.next = null;
-        }
+        unlinkLast(last);
+    }
 
+    private void unlinkLast(MyNode<E> last) {
+        final E element = last.data;
+        final MyNode<E> prev = last.prev;
+        last.data = null;
+        last.prev = null; // help GC
+        last = prev;
+        if (prev == null)
+            head = null;
+        else
+            prev.next = null;
         size--;
     }
 
+    /**
+     * Method to sort linked list by bubble sort.
+     * @throws UnsupportedOperationException if elements are not comparable.
+     */
     @Override
     public void sort() {
-
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - i - 1; j++) {
+                if (compare(getNode(j).data, getNode(j + 1).data) > 0) {
+                    E temp = getNode(j).data;
+                    getNode(j).data = getNode(j + 1).data;
+                    getNode(j + 1).data = temp;
+                }
+            }
+        }
     }
+
+    /**
+     * Method to compare two nodes.
+     * @param a first node.
+     * @param b second node.
+     * @throws UnsupportedOperationException if elements are not comparable.
+     * @return one of the nodes, which is bigger.
+     */
+    private int compare(E a, E b) {
+        if (a instanceof Comparable && b instanceof Comparable) {
+            return ((Comparable<E>) a).compareTo(b);
+        } else {
+            throw new UnsupportedOperationException("Elements are not comparable");
+        }
+    }
+
 //    @Override
 //    public void sort(Comparator<? super E> comparator) {
 //        Object[] a = this.toArray();
@@ -307,7 +361,7 @@ public class MyLinkedList<E> implements MyList<E> {
      * @return True if exists and False if not.
      */
     private boolean isElementIndex(int index) {
-        return 0 <= index && index < size;
+        return index >= 0 && index < size;
     }
 
     /**

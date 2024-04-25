@@ -111,7 +111,7 @@ public class MyArrayList<T> implements MyList<T> {
      * @throws IndexOutOfBoundsException if index out of bounds of arraylist.
      */
     private void checkIndex(int index) {
-        if (index < 0 || index >= size)
+        if (index < 0 || index > size)
             throw new IndexOutOfBoundsException("Index out of bounds.");
     }
 
